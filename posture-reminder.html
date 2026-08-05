@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>정렬 — 자세교정 알림</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #F4F6F5;
+    --surface: #FFFFFF;
+    --ink: #1C2B2A;
+    --ink-soft: #5B6D6A;
+    --line: #DCE3E1;
+    --accent: #2F6F62;
+    --accent-soft: #E4EEEC;
+    --alert: #8B4A3D;
+    --alert-soft: #F4E7E3;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:32px 20px;
+  }
+  .app{
+    width:100%;
+    max-width:460px;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:0.14em;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    margin-bottom:8px;
+  }
+  h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:32px;
+    font-weight:700;
+    letter-spacing:-0.01em;
+    margin-bottom:6px;
+  }
+  .sub{
+    color:var(--ink-soft);
+    font-size:14px;
+    margin-bottom:28px;
+    line-height:1.5;
+  }
+
+  /* Signature element: large countdown timer */
+  .align-wrap{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:32px 28px;
+    margin-bottom:20px;
+    text-align:center;
+  }
+  .status-word{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:16px;
+    font-weight:600;
+    margin-bottom:10px;
+    transition: color 0.4s;
+  }
+  .status-word.drift{ color:var(--alert); }
+  .status-word.aligned{ color:var(--accent); }
+  .countdown{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:56px;
+    font-weight:600;
+    color:var(--ink);
+    letter-spacing:0.02em;
+    line-height:1.1;
+  }
+  .countdown.idle{
+    font-size:16px;
+    font-weight:500;
+    color:var(--ink-soft);
+    font-family:'Inter',sans-serif;
+  }
+  .countdown b{ font-weight:600; }
+
+  /* Controls */
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:24px 24px 26px;
+    margin-bottom:16px;
+  }
+  .card-title{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:14px;
+    font-weight:600;
+    margin-bottom:14px;
+    color:var(--ink);
+  }
+  .part-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:8px;
+    margin-bottom:18px;
+  }
+  .part-btn{
+    font-family:'Inter',sans-serif;
+    font-size:12px;
+    font-weight:600;
+    padding:10px 4px;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:var(--bg);
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:all 0.15s;
+  }
+  .part-btn:hover{ border-color:var(--accent); }
+  .part-btn.active{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#fff;
+  }
+  .part-hint{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    margin:-10px 0 18px;
+  }
+  .mode-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:8px;
+    margin-bottom:18px;
+  }
+  .mode-btn{
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    font-weight:600;
+    padding:12px 8px;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:var(--bg);
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:all 0.15s;
+  }
+  .mode-btn:hover{ border-color:var(--accent); }
+  .mode-btn.active{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#fff;
+  }
+  .interval-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:8px;
+    margin-bottom:20px;
+  }
+  .interval-btn{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    font-weight:500;
+    padding:10px 4px;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:var(--bg);
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:all 0.15s;
+  }
+  .interval-btn:hover{ border-color:var(--accent); }
+  .interval-btn.active{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#fff;
+  }
+  .actions{
+    display:flex;
+    gap:10px;
+  }
+  .btn{
+    flex:1;
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    font-weight:600;
+    padding:13px 16px;
+    border-radius:12px;
+    border:none;
+    cursor:pointer;
+    transition:opacity 0.15s, transform 0.1s;
+  }
+  .btn:active{ transform:scale(0.98); }
+  .btn-primary{ background:var(--accent); color:#fff; }
+  .btn-primary:disabled{ opacity:0.4; cursor:default; }
+  .interval-btn:disabled,
+  .mode-btn:disabled,
+  .part-btn:disabled{ opacity:0.5; cursor:default; }
+  .interval-btn:disabled:hover,
+  .mode-btn:disabled:hover,
+  .part-btn:disabled:hover{ border-color:var(--line); }
+  .btn-ghost{ background:var(--bg); color:var(--ink); border:1px solid var(--line); }
+  .btn-danger{ background:var(--alert-soft); color:var(--alert); }
+
+  .meta-row{
+    display:flex;
+    justify-content:space-between;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-top:14px;
+    padding-top:14px;
+    border-top:1px solid var(--line);
+  }
+
+  .voice-note{
+    font-size:12px;
+    color:var(--ink-soft);
+    line-height:1.6;
+    padding:14px 16px;
+    background:var(--accent-soft);
+    border-radius:12px;
+  }
+  .voice-note b{ color:var(--ink); }
+
+  /* Alert overlay */
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(28,43,42,0.92);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    z-index:50;
+  }
+  .overlay.show{ display:flex; }
+  .overlay-card{
+    background:var(--surface);
+    border-radius:24px;
+    padding:36px 28px;
+    max-width:400px;
+    width:100%;
+    text-align:center;
+  }
+  .overlay-eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.12em;
+    color:var(--alert);
+    text-transform:uppercase;
+    margin-bottom:10px;
+  }
+  .overlay-title{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:24px;
+    font-weight:700;
+    margin-bottom:14px;
+  }
+  .overlay-text{
+    font-size:15px;
+    line-height:1.6;
+    color:var(--ink-soft);
+    margin-bottom:24px;
+  }
+  .overlay-actions{ display:flex; gap:10px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="eyebrow">POSTURE ALIGNMENT REMINDER</div>
+  <h1>정렬</h1>
+  <p class="sub">짧은 동작을 자주 반복하도록, 일정 간격마다 음성으로 안내합니다.</p>
+
+  <div class="align-wrap">
+    <div class="status-word aligned" id="statusWord">정렬 대기</div>
+    <div class="countdown idle" id="countdown">간격을 선택하고 시작하세요</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">부위 선택</div>
+    <div class="part-grid" id="partGrid">
+      <button class="part-btn" data-part="목">목</button>
+      <button class="part-btn" data-part="허리">허리</button>
+      <button class="part-btn" data-part="등">등</button>
+      <button class="part-btn" data-part="어깨">어깨</button>
+      <button class="part-btn" data-part="골반">골반</button>
+      <button class="part-btn" data-part="무릎">무릎</button>
+      <button class="part-btn" data-part="발목">발목</button>
+      <button class="part-btn active" data-part="전신">전신</button>
+    </div>
+    <div class="part-hint">부위는 하나만 선택할 수 있어요</div>
+
+    <div class="card-title">자세 모드</div>
+    <div class="mode-grid" id="modeGrid">
+      <button class="mode-btn active" data-mode="sitting">앉은자세</button>
+      <button class="mode-btn" data-mode="lying">누운자세</button>
+    </div>
+    <div class="card-title">알림 간격</div>
+    <div class="interval-grid" id="intervalGrid">
+      <button class="interval-btn active" data-min="40">40분</button>
+      <button class="interval-btn" data-min="60">60분</button>
+    </div>
+    <div class="actions">
+      <button class="btn btn-primary" id="startBtn">시작</button>
+      <button class="btn btn-ghost" id="stopBtn" disabled>정지</button>
+    </div>
+    <div class="meta-row">
+      <span>오늘 알림 횟수</span>
+      <span id="countToday">0회</span>
+    </div>
+  </div>
+
+  <div class="voice-note">
+    <b>안내</b> — 이 탭을 열어둔 상태에서만 타이머가 동작합니다. 처음 시작할 때 브라우저가 알림·음성 권한을 물으면 허용해 주세요.
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="overlay-card">
+    <div class="overlay-eyebrow">Alignment Check</div>
+    <div class="overlay-title" id="overlayTitle">자세를 확인할 시간이에요</div>
+    <div class="overlay-text" id="overlayText"></div>
+    <div class="overlay-actions">
+      <button class="btn btn-primary" id="dismissBtn">확인했어요</button>
+      <button class="btn btn-danger" id="replayBtn">다시 듣기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TIP_LIBRARY = {
+  '목': {
+    sitting: [
+      { title: "목 이완 안내", text: "등 기대고, 머리 기대고, 다리 내리고, 목에 힘 빼고, 한숨 돌리고, 다시 시작." }
+    ],
+    lying: [
+      { title: "목 이완 안내", text: "바로 눕고, 뒤통수 대고, 목에 힘 빼고, 한숨 돌리고, 다시 시작." }
+    ]
+  },
+  '허리': {
+    sitting: [
+      { title: "허리 이완 안내", text: "등 기대고, 다리 내리고, 허리 힘 빼고, 엉덩이 수평 맞추고, 한숨 돌리고, 다시 시작." }
+    ],
+    lying: [
+      { title: "허리 이완 안내", text: "바로 눕고, 다리 내리고, 허리 힘 빼고, 한숨 돌리고, 다시 시작." }
+    ]
+  },
+  '등': {
+    sitting: [
+      { title: "등 이완 안내", text: "등 기대고, 다리 내리고, 등허리 힘 빼고, 엉덩이 수평 맞추고, 한숨 돌리고, 다시 시작." }
+    ],
+    lying: [
+      { title: "등 이완 안내", text: "바로 눕고, 다리 내리고, 등허리 힘 빼고, 한숨 돌리고, 다시 시작." }
+    ]
+  },
+  '어깨': {
+    sitting: [
+      { title: "어깨 이완 안내", text: "등 기대고, 머리 기대고, 양손 내리고, 어깨 힘 빼고, 한숨 돌리고, 다시 시작." }
+    ],
+    lying: [
+      { title: "어깨 이완 안내", text: "바로 눕고, 뒤통수 대고, 차렷 자세, 한숨 돌리고, 다시 시작." }
+    ]
+  },
+  '골반': {
+    sitting: [
+      { title: "골반 이완 안내", text: "등 기대고, 다리 내리고, 엉덩이 수평 맞추고, 한숨 돌리고, 다시 시작." }
+    ],
+    lying: [
+      { title: "골반 이완 안내", text: "바로 눕고, 다리 내리고, 엉덩이 수평 맞추고, 한숨 돌리고, 다시 시작." }
+    ]
+  },
+  '무릎': {
+    sitting: [
+      { title: "무릎 이완 안내", text: "등 기대고, 다리 내리고, 발 딛지 말고, 골반 열고, 무릎 힘 빼고, 한숨 돌리고, 다시 시작." }
+    ],
+    lying: [
+      { title: "무릎 이완 안내", text: "바로 눕고, 다리 내리고, 골반 열고, 무릎 힘 빼고, 한숨 돌리고, 다시 시작." }
+    ]
+  },
+  '발목': {
+    sitting: [
+      { title: "발목 이완 안내", text: "등 기대고, 다리 내리고, 발 딛지 말고, 발목 힘 빼고, 한숨 돌리고, 다시 시작." }
+    ],
+    lying: [
+      { title: "발목 이완 안내", text: "바로 눕고, 다리 내리고, 발목 힘 빼고, 한숨 돌리고, 다시 시작." }
+    ]
+  },
+  '전신': {
+    sitting: [
+      { title: "전신 이완 안내", text: "머리 기대고, 등 기대고, 다리 내리고, 발 딛지 말고, 목에 힘 빼고, 등허리 힘 빼고, 다리 힘 빼고, 손 내리고, 어깨 힘 빼고, 온몸에 힘 빼고, 한숨 돌리고, 다시 시작." }
+    ],
+    lying: [
+      { title: "전신 이완 안내", text: "바로 눕고, 다리 내리고, 골반 열고, 손 내리고, 목에 힘 빼고, 등허리 힘 빼고, 어깨 힘 빼고, 온몸에 힘 빼고, 한숨 돌리고, 다시 시작." }
+    ]
+  }
+};
+
+let mode = 'sitting';
+let selectedPart = '전신';
+
+let intervalMin = 40;
+let remainingSec = intervalMin * 60;
+let timerId = null;
+let running = false;
+let todayCount = 0;
+let currentTip = null;
+
+const el = {
+  grid: document.getElementById('intervalGrid'),
+  partGrid: document.getElementById('partGrid'),
+  modeGrid: document.getElementById('modeGrid'),
+  startBtn: document.getElementById('startBtn'),
+  stopBtn: document.getElementById('stopBtn'),
+  countdown: document.getElementById('countdown'),
+  statusWord: document.getElementById('statusWord'),
+  countToday: document.getElementById('countToday'),
+  overlay: document.getElementById('overlay'),
+  overlayTitle: document.getElementById('overlayTitle'),
+  overlayText: document.getElementById('overlayText'),
+  dismissBtn: document.getElementById('dismissBtn'),
+  replayBtn: document.getElementById('replayBtn')
+};
+
+el.partGrid.addEventListener('click', (e) => {
+  const btn = e.target.closest('.part-btn');
+  if (!btn || running) return;
+  document.querySelectorAll('.part-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedPart = btn.dataset.part;
+});
+
+el.modeGrid.addEventListener('click', (e) => {
+  const btn = e.target.closest('.mode-btn');
+  if (!btn || running) return;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  mode = btn.dataset.mode;
+});
+
+el.grid.addEventListener('click', (e) => {
+  const btn = e.target.closest('.interval-btn');
+  if (!btn || running) return;
+  document.querySelectorAll('.interval-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  intervalMin = parseInt(btn.dataset.min, 10);
+  remainingSec = intervalMin * 60;
+});
+
+function formatTime(sec){
+  const m = Math.floor(sec / 60).toString().padStart(2,'0');
+  const s = (sec % 60).toString().padStart(2,'0');
+  return m + ':' + s;
+}
+
+function updateCountdown(){
+  el.countdown.classList.remove('idle');
+  el.countdown.textContent = formatTime(remainingSec);
+  el.statusWord.textContent = '다음 안내까지';
+  el.statusWord.className = 'status-word aligned';
+}
+
+function speak(text){
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'ko-KR';
+  utter.rate = 0.98;
+  const voices = window.speechSynthesis.getVoices();
+  const koVoice = voices.find(v => v.lang === 'ko-KR');
+  if (koVoice) utter.voice = koVoice;
+  window.speechSynthesis.speak(utter);
+}
+
+function notify(title, body){
+  if ('Notification' in window && Notification.permission === 'granted'){
+    try { new Notification(title, { body }); } catch(e) {}
+  }
+}
+
+function triggerAlert(){
+  const bucket = (TIP_LIBRARY[selectedPart] && TIP_LIBRARY[selectedPart][mode]) || TIP_LIBRARY['전신'][mode];
+  currentTip = bucket[Math.floor(Math.random() * bucket.length)];
+  el.overlayTitle.textContent = currentTip.title;
+  el.overlayText.textContent = currentTip.text;
+  el.overlay.classList.add('show');
+  speak(currentTip.title + '. ' + currentTip.text);
+  notify('자세교정 알림 — ' + currentTip.title, currentTip.text);
+  todayCount += 1;
+  el.countToday.textContent = todayCount + '회';
+  el.statusWord.textContent = '안내 중';
+  el.statusWord.className = 'status-word drift';
+}
+
+el.dismissBtn.addEventListener('click', () => {
+  el.overlay.classList.remove('show');
+  window.speechSynthesis.cancel();
+  remainingSec = intervalMin * 60;
+  updateCountdown();
+});
+
+el.replayBtn.addEventListener('click', () => {
+  if (currentTip) speak(currentTip.title + '. ' + currentTip.text);
+});
+
+el.startBtn.addEventListener('click', () => {
+  if (running) return;
+  if ('Notification' in window && Notification.permission === 'default'){
+    Notification.requestPermission();
+  }
+  if ('speechSynthesis' in window){
+    window.speechSynthesis.getVoices();
+  }
+  running = true;
+  el.startBtn.disabled = true;
+  el.stopBtn.disabled = false;
+  document.querySelectorAll('.interval-btn').forEach(b => b.disabled = true);
+  document.querySelectorAll('.mode-btn').forEach(b => b.disabled = true);
+  document.querySelectorAll('.part-btn').forEach(b => b.disabled = true);
+  remainingSec = intervalMin * 60;
+  updateCountdown();
+  timerId = setInterval(() => {
+    remainingSec -= 1;
+    const total = intervalMin * 60;
+    updateCountdown();
+    if (remainingSec <= 0){
+      triggerAlert();
+      remainingSec = total;
+    }
+  }, 1000);
+});
+
+el.stopBtn.addEventListener('click', () => {
+  running = false;
+  clearInterval(timerId);
+  el.startBtn.disabled = false;
+  el.stopBtn.disabled = true;
+  document.querySelectorAll('.interval-btn').forEach(b => b.disabled = false);
+  document.querySelectorAll('.mode-btn').forEach(b => b.disabled = false);
+  document.querySelectorAll('.part-btn').forEach(b => b.disabled = false);
+  remainingSec = intervalMin * 60;
+  el.statusWord.textContent = '정렬 대기';
+  el.statusWord.className = 'status-word aligned';
+  el.countdown.classList.add('idle');
+  el.countdown.textContent = '간격을 선택하고 시작하세요';
+});
+</script>
+
+</body>
+</html>
