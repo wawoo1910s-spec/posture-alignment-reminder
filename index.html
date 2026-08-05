@@ -36,7 +36,7 @@
   }
   .eyebrow{
     font-family:'IBM Plex Mono',monospace;
-    font-size:12px;
+    font-size:13px;
     letter-spacing:0.14em;
     color:var(--ink-soft);
     text-transform:uppercase;
@@ -44,16 +44,37 @@
   }
   h1{
     font-family:'Space Grotesk',sans-serif;
-    font-size:32px;
+    font-size:40px;
     font-weight:700;
     letter-spacing:-0.01em;
-    margin-bottom:6px;
+    margin-bottom:8px;
   }
   .sub{
     color:var(--ink-soft);
-    font-size:14px;
-    margin-bottom:28px;
+    font-size:17px;
+    margin-bottom:20px;
     line-height:1.5;
+  }
+  .credential-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    font-weight:500;
+    color:var(--accent);
+    background:var(--accent-soft);
+    padding:6px 12px;
+    border-radius:999px;
+    margin-bottom:28px;
+  }
+  .credential-badge::before{
+    content:"";
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    background:var(--accent);
+    flex-shrink:0;
   }
 
   /* Signature element: large countdown timer */
@@ -67,7 +88,7 @@
   }
   .status-word{
     font-family:'Space Grotesk',sans-serif;
-    font-size:16px;
+    font-size:20px;
     font-weight:600;
     margin-bottom:10px;
     transition: color 0.4s;
@@ -76,14 +97,14 @@
   .status-word.aligned{ color:var(--accent); }
   .countdown{
     font-family:'IBM Plex Mono',monospace;
-    font-size:56px;
+    font-size:76px;
     font-weight:600;
     color:var(--ink);
     letter-spacing:0.02em;
     line-height:1.1;
   }
   .countdown.idle{
-    font-size:16px;
+    font-size:19px;
     font-weight:500;
     color:var(--ink-soft);
     font-family:'Inter',sans-serif;
@@ -100,7 +121,7 @@
   }
   .card-title{
     font-family:'Space Grotesk',sans-serif;
-    font-size:14px;
+    font-size:16px;
     font-weight:600;
     margin-bottom:14px;
     color:var(--ink);
@@ -113,9 +134,9 @@
   }
   .part-btn{
     font-family:'Inter',sans-serif;
-    font-size:12px;
+    font-size:14px;
     font-weight:600;
-    padding:10px 4px;
+    padding:12px 4px;
     border-radius:10px;
     border:1px solid var(--line);
     background:var(--bg);
@@ -131,7 +152,7 @@
   }
   .part-hint{
     font-family:'IBM Plex Mono',monospace;
-    font-size:11px;
+    font-size:12px;
     color:var(--ink-soft);
     margin:-10px 0 18px;
   }
@@ -143,9 +164,9 @@
   }
   .mode-btn{
     font-family:'Inter',sans-serif;
-    font-size:13px;
+    font-size:15px;
     font-weight:600;
-    padding:12px 8px;
+    padding:14px 8px;
     border-radius:10px;
     border:1px solid var(--line);
     background:var(--bg);
@@ -161,15 +182,15 @@
   }
   .interval-grid{
     display:grid;
-    grid-template-columns:repeat(2,1fr);
+    grid-template-columns:repeat(3,1fr);
     gap:8px;
     margin-bottom:20px;
   }
   .interval-btn{
     font-family:'IBM Plex Mono',monospace;
-    font-size:13px;
+    font-size:15px;
     font-weight:500;
-    padding:10px 4px;
+    padding:12px 4px;
     border-radius:10px;
     border:1px solid var(--line);
     background:var(--bg);
@@ -190,9 +211,9 @@
   .btn{
     flex:1;
     font-family:'Inter',sans-serif;
-    font-size:14px;
+    font-size:16px;
     font-weight:600;
-    padding:13px 16px;
+    padding:15px 12px;
     border-radius:12px;
     border:none;
     cursor:pointer;
@@ -208,13 +229,14 @@
   .mode-btn:disabled:hover,
   .part-btn:disabled:hover{ border-color:var(--line); }
   .btn-ghost{ background:var(--bg); color:var(--ink); border:1px solid var(--line); }
+  .btn-ghost:disabled{ opacity:0.4; cursor:default; }
   .btn-danger{ background:var(--alert-soft); color:var(--alert); }
 
   .meta-row{
     display:flex;
     justify-content:space-between;
     font-family:'IBM Plex Mono',monospace;
-    font-size:12px;
+    font-size:14px;
     color:var(--ink-soft);
     margin-top:14px;
     padding-top:14px;
@@ -222,7 +244,7 @@
   }
 
   .voice-note{
-    font-size:12px;
+    font-size:14px;
     color:var(--ink-soft);
     line-height:1.6;
     padding:14px 16px;
@@ -253,7 +275,7 @@
   }
   .overlay-eyebrow{
     font-family:'IBM Plex Mono',monospace;
-    font-size:11px;
+    font-size:12px;
     letter-spacing:0.12em;
     color:var(--alert);
     text-transform:uppercase;
@@ -261,12 +283,12 @@
   }
   .overlay-title{
     font-family:'Space Grotesk',sans-serif;
-    font-size:24px;
+    font-size:28px;
     font-weight:700;
     margin-bottom:14px;
   }
   .overlay-text{
-    font-size:15px;
+    font-size:18px;
     line-height:1.6;
     color:var(--ink-soft);
     margin-bottom:24px;
@@ -280,6 +302,7 @@
   <div class="eyebrow">POSTURE ALIGNMENT REMINDER</div>
   <h1>정렬</h1>
   <p class="sub">짧은 동작을 자주 반복하도록, 일정 간격마다 음성으로 안내합니다.</p>
+  <div class="credential-badge">12년차 물리치료사가 만든 자세교정 안내</div>
 
   <div class="align-wrap">
     <div class="status-word aligned" id="statusWord">정렬 대기</div>
@@ -307,11 +330,13 @@
     </div>
     <div class="card-title">알림 간격</div>
     <div class="interval-grid" id="intervalGrid">
+      <button class="interval-btn" data-min="20">20분</button>
       <button class="interval-btn active" data-min="40">40분</button>
       <button class="interval-btn" data-min="60">60분</button>
     </div>
     <div class="actions">
       <button class="btn btn-primary" id="startBtn">시작</button>
+      <button class="btn btn-ghost" id="pauseBtn" disabled>일시정지</button>
       <button class="btn btn-ghost" id="stopBtn" disabled>정지</button>
     </div>
     <div class="meta-row">
@@ -322,6 +347,18 @@
 
   <div class="voice-note">
     <b>안내</b> — 이 탭을 열어둔 상태에서만 타이머가 동작합니다. 처음 시작할 때 브라우저가 알림·음성 권한을 물으면 허용해 주세요.
+  </div>
+
+  <div class="voice-note" style="margin-top:12px;">
+    <b>사용법</b> — 시간이 되면 음성 안내에 따라 자세교정 동작을 실행하고, 바로 하던 일을 다시 이어가시면 됩니다.
+  </div>
+
+  <div class="voice-note" style="margin-top:12px;">
+    <b>추천 사용 시간</b> — 일할 때, 그리고 휴식할 때(특히 저녁 시간)에 사용하시면 좋습니다.
+  </div>
+
+  <div class="voice-note" style="margin-top:12px;">
+    <b>문의</b> — 12년차 물리치료사가 임상 경험을 바탕으로 만들었습니다. 불편사항이나 문의사항은 <a href="mailto:wawoo1910s@gmail.com" style="color:var(--accent); font-weight:600;">wawoo1910s@gmail.com</a>으로 보내주세요.
   </div>
 </div>
 
@@ -412,6 +449,7 @@ let intervalMin = 40;
 let remainingSec = intervalMin * 60;
 let timerId = null;
 let running = false;
+let paused = false;
 let todayCount = 0;
 let currentTip = null;
 
@@ -420,6 +458,7 @@ const el = {
   partGrid: document.getElementById('partGrid'),
   modeGrid: document.getElementById('modeGrid'),
   startBtn: document.getElementById('startBtn'),
+  pauseBtn: document.getElementById('pauseBtn'),
   stopBtn: document.getElementById('stopBtn'),
   countdown: document.getElementById('countdown'),
   statusWord: document.getElementById('statusWord'),
@@ -512,6 +551,16 @@ el.replayBtn.addEventListener('click', () => {
   if (currentTip) speak(currentTip.title + '. ' + currentTip.text);
 });
 
+function tick(){
+  remainingSec -= 1;
+  const total = intervalMin * 60;
+  updateCountdown();
+  if (remainingSec <= 0){
+    triggerAlert();
+    remainingSec = total;
+  }
+}
+
 el.startBtn.addEventListener('click', () => {
   if (running) return;
   if ('Notification' in window && Notification.permission === 'default'){
@@ -521,28 +570,43 @@ el.startBtn.addEventListener('click', () => {
     window.speechSynthesis.getVoices();
   }
   running = true;
+  paused = false;
   el.startBtn.disabled = true;
+  el.pauseBtn.disabled = false;
+  el.pauseBtn.textContent = '일시정지';
   el.stopBtn.disabled = false;
   document.querySelectorAll('.interval-btn').forEach(b => b.disabled = true);
   document.querySelectorAll('.mode-btn').forEach(b => b.disabled = true);
   document.querySelectorAll('.part-btn').forEach(b => b.disabled = true);
   remainingSec = intervalMin * 60;
   updateCountdown();
-  timerId = setInterval(() => {
-    remainingSec -= 1;
-    const total = intervalMin * 60;
-    updateCountdown();
-    if (remainingSec <= 0){
-      triggerAlert();
-      remainingSec = total;
-    }
-  }, 1000);
+  timerId = setInterval(tick, 1000);
+});
+
+el.pauseBtn.addEventListener('click', () => {
+  if (!running) return;
+  if (!paused){
+    paused = true;
+    clearInterval(timerId);
+    el.pauseBtn.textContent = '재개';
+    el.statusWord.textContent = '일시정지됨';
+    el.statusWord.className = 'status-word drift';
+  } else {
+    paused = false;
+    timerId = setInterval(tick, 1000);
+    el.pauseBtn.textContent = '일시정지';
+    el.statusWord.textContent = '다음 안내까지';
+    el.statusWord.className = 'status-word aligned';
+  }
 });
 
 el.stopBtn.addEventListener('click', () => {
   running = false;
+  paused = false;
   clearInterval(timerId);
   el.startBtn.disabled = false;
+  el.pauseBtn.disabled = true;
+  el.pauseBtn.textContent = '일시정지';
   el.stopBtn.disabled = true;
   document.querySelectorAll('.interval-btn').forEach(b => b.disabled = false);
   document.querySelectorAll('.mode-btn').forEach(b => b.disabled = false);
