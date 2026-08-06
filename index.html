@@ -323,33 +323,14 @@
 </head>
 <body>
 
-<!-- ============================================
-  자세쌤 헤더 — 웹앱 <body> 맨 위(첫 번째 카드 위)에 붙여넣기
-  이미지 업로드 불필요 (인라인 SVG)
-============================================= -->
-<header class="jss-header">
-  <svg class="jss-logo" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <rect width="1024" height="1024" rx="224" fill="#2E6B5B"/>
-    <g fill="#F7F6F2">
-      <circle cx="512" cy="234" r="74"/>
-      <rect x="422" y="352" width="180" height="84" rx="42"/>
-      <rect x="410" y="472" width="204" height="84" rx="42"/>
-      <rect x="398" y="592" width="228" height="84" rx="42"/>
-      <rect x="386" y="712" width="252" height="84" rx="42"/>
-    </g>
-  </svg>
-  <div class="jss-title-wrap">
-    <h1 class="jss-title">자세쌤</h1>
-    <p class="jss-subtitle">12년차 물리치료사의 자세교정 알리미</p>
-  </div>
-</header>
 <style>
   .jss-header {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 14px;
-    padding: 20px 16px 6px;
+    padding: 0 0 6px;
+    margin-bottom: 14px;
   }
   .jss-logo {
     width: 52px;
@@ -383,6 +364,24 @@
 </style>
 
 <div class="app">
+  <!-- 자세쌤 헤더 (인라인 SVG 로고) -->
+  <header class="jss-header">
+    <svg class="jss-logo" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect width="1024" height="1024" rx="224" fill="#2E6B5B"/>
+      <g fill="#F7F6F2">
+        <circle cx="512" cy="234" r="74"/>
+        <rect x="422" y="352" width="180" height="84" rx="42"/>
+        <rect x="410" y="472" width="204" height="84" rx="42"/>
+        <rect x="398" y="592" width="228" height="84" rx="42"/>
+        <rect x="386" y="712" width="252" height="84" rx="42"/>
+      </g>
+    </svg>
+    <div class="jss-title-wrap">
+      <h1 class="jss-title">자세쌤</h1>
+      <p class="jss-subtitle">12년차 물리치료사의 자세교정 알리미</p>
+    </div>
+  </header>
+
   <p class="sub">짧은 동작을 자주 반복하도록, 일정 간격마다 음성으로 안내합니다.</p>
 
   <div class="align-wrap">
