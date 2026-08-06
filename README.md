@@ -1,1 +1,1 @@
-# posture-alignment-reminder
+# Posture Coach
