@@ -326,6 +326,47 @@
     text-align:center;
     margin:-12px 0 20px;
   }
+
+  /* 치료사 추천상품 */
+  .product-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .product-item{
+    display:block;
+    padding:14px 16px;
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:12px;
+    text-decoration:none;
+    color:var(--ink);
+    transition:border-color 0.15s, background 0.15s;
+  }
+  .product-item:hover{
+    border-color:var(--accent);
+    background:var(--accent-soft);
+  }
+  .product-item:active{ transform:scale(0.99); }
+  .product-name{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:600;
+    font-size:15px;
+    margin-bottom:4px;
+    color:var(--accent);
+  }
+  .product-desc{
+    font-size:13px;
+    color:var(--ink-soft);
+    line-height:1.45;
+  }
+  .product-arrow{
+    font-size:12px;
+    color:var(--accent);
+    margin-top:6px;
+    font-weight:500;
+  }
+
   .voice-row{
     display:flex;
     gap:8px;
@@ -616,6 +657,27 @@
   <div class="share-row">
     <button class="share-btn" id="shareBtn">공유하기</button>
     <button class="share-btn" id="copyBtn">링크 복사</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">치료사의 추천상품</div>
+    <div class="product-list">
+      <a class="product-item" href="https://link.coupang.com/a/fY31nub2t2" target="_blank" rel="noopener noreferrer">
+        <div class="product-name">교정 자세용 의자</div>
+        <div class="product-desc">근무처와 휴식처에 두고 교정자세 하기에 적합한 의자</div>
+        <div class="product-arrow">쿠팡에서 보기 →</div>
+      </a>
+      <a class="product-item" href="https://link.coupang.com/a/fY4bLjQemO" target="_blank" rel="noopener noreferrer">
+        <div class="product-name">매트리스 토퍼</div>
+        <div class="product-desc">잠자리 위에 더 올리면 좋은 매트리스</div>
+        <div class="product-arrow">쿠팡에서 보기 →</div>
+      </a>
+      <a class="product-item" href="https://link.coupang.com/a/fY4i8kSrC0" target="_blank" rel="noopener noreferrer">
+        <div class="product-name">목 결림 완화 베개</div>
+        <div class="product-desc">아침 목결림에 효과 좋은 베개</div>
+        <div class="product-arrow">쿠팡에서 보기 →</div>
+      </a>
+    </div>
   </div>
 
   <!-- 쿠팡파트너스 배너 (320x250) -->
