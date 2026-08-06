@@ -279,6 +279,82 @@
     border-top:1px solid var(--line);
   }
 
+  .rec-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:24px 22px;
+    margin-top:20px;
+  }
+  .rec-head{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:17px;
+    font-weight:700;
+    color:var(--ink);
+    margin-bottom:4px;
+  }
+  .rec-sub{
+    font-size:13px;
+    color:var(--ink-soft);
+    line-height:1.5;
+    margin-bottom:16px;
+  }
+  .rec-item{
+    display:block;
+    text-decoration:none;
+    color:inherit;
+    padding:13px 14px;
+    border-radius:12px;
+    background:var(--bg);
+    border:1px solid transparent;
+    margin-bottom:9px;
+    transition:border-color 0.15s, transform 0.1s;
+  }
+  .rec-item:last-of-type{ margin-bottom:0; }
+  .rec-item:hover{ border-color:var(--accent); }
+  .rec-item:active{ transform:scale(0.99); }
+  .rec-name{
+    font-size:15px;
+    font-weight:700;
+    color:var(--accent);
+    margin-bottom:3px;
+  }
+  .rec-name::after{
+    content:" ›";
+    font-weight:700;
+  }
+  .rec-why{
+    font-size:13px;
+    color:var(--ink-soft);
+    line-height:1.55;
+  }
+  .rec-tag{
+    display:inline-block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px;
+    font-weight:600;
+    color:var(--accent);
+    background:var(--accent-soft);
+    padding:2px 7px;
+    border-radius:999px;
+    margin-right:6px;
+    vertical-align:1px;
+  }
+
+  .app-footer{
+    text-align:center;
+    margin-top:28px;
+    padding-top:18px;
+    border-top:1px solid var(--line);
+  }
+  .app-footer p{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    opacity:0.75;
+    line-height:1.7;
+  }
+
   .streak-note{
     font-family:'Inter',sans-serif;
     font-size:13px;
@@ -326,47 +402,6 @@
     text-align:center;
     margin:-12px 0 20px;
   }
-
-  /* 치료사 추천상품 */
-  .product-list{
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-  }
-  .product-item{
-    display:block;
-    padding:14px 16px;
-    background:var(--bg);
-    border:1px solid var(--line);
-    border-radius:12px;
-    text-decoration:none;
-    color:var(--ink);
-    transition:border-color 0.15s, background 0.15s;
-  }
-  .product-item:hover{
-    border-color:var(--accent);
-    background:var(--accent-soft);
-  }
-  .product-item:active{ transform:scale(0.99); }
-  .product-name{
-    font-family:'Space Grotesk',sans-serif;
-    font-weight:600;
-    font-size:15px;
-    margin-bottom:4px;
-    color:var(--accent);
-  }
-  .product-desc{
-    font-size:13px;
-    color:var(--ink-soft);
-    line-height:1.45;
-  }
-  .product-arrow{
-    font-size:12px;
-    color:var(--accent);
-    margin-top:6px;
-    font-weight:500;
-  }
-
   .voice-row{
     display:flex;
     gap:8px;
@@ -421,6 +456,8 @@
   }
   .share-btn:hover{ border-color:var(--accent); color:var(--accent); }
   .share-btn:active{ transform:scale(0.98); }
+  .share-btn:disabled{ opacity:0.5; cursor:default; }
+  .share-btn:disabled:hover{ border-color:var(--line); color:var(--ink); }
   .share-toast{
     position:fixed;
     left:50%;
@@ -634,6 +671,7 @@
       <button class="mode-btn active" data-sound="on">알림음 켜기</button>
       <button class="mode-btn" data-sound="off">알림음 끄기</button>
     </div>
+    <button class="share-btn" id="fullTestBtn" style="width:100%; margin-bottom:18px;">🔊 음성·자막 테스트</button>
     <div class="actions">
       <button class="btn btn-primary" id="startBtn">시작</button>
       <button class="btn btn-ghost" id="pauseBtn" disabled>일시정지</button>
@@ -659,27 +697,6 @@
     <button class="share-btn" id="copyBtn">링크 복사</button>
   </div>
 
-  <div class="card">
-    <div class="card-title">치료사의 추천상품</div>
-    <div class="product-list">
-      <a class="product-item" href="https://link.coupang.com/a/fY31nub2t2" target="_blank" rel="noopener noreferrer">
-        <div class="product-name">교정 자세용 의자</div>
-        <div class="product-desc">근무처와 휴식처에 두고 교정자세 하기에 적합한 의자</div>
-        <div class="product-arrow">쿠팡에서 보기 →</div>
-      </a>
-      <a class="product-item" href="https://link.coupang.com/a/fY4bLjQemO" target="_blank" rel="noopener noreferrer">
-        <div class="product-name">매트리스 토퍼</div>
-        <div class="product-desc">잠자리 위에 더 올리면 좋은 매트리스</div>
-        <div class="product-arrow">쿠팡에서 보기 →</div>
-      </a>
-      <a class="product-item" href="https://link.coupang.com/a/fY4i8kSrC0" target="_blank" rel="noopener noreferrer">
-        <div class="product-name">목 결림 완화 베개</div>
-        <div class="product-desc">아침 목결림에 효과 좋은 베개</div>
-        <div class="product-arrow">쿠팡에서 보기 →</div>
-      </a>
-    </div>
-  </div>
-
   <!-- 쿠팡파트너스 배너 (320x250) -->
   <div class="ad-slot" id="adSlot300x250">
     <iframe src="https://ads-partners.coupang.com/widgets.html?id=1014619&template=carousel&trackingCode=AF5742623&subId=&width=320&height=250&tsource=" width="320" height="250" frameborder="0" scrolling="no" referrerpolicy="unsafe-url" browsingtopics></iframe>
@@ -700,6 +717,37 @@
 
   <div class="voice-note" style="margin-top:12px;">
     <b>문의</b> — 12년차 물리치료사가 임상 경험을 바탕으로 만들었습니다. 불편사항이나 문의사항은 아래 <b>댓글</b>로 남겨주시거나, <a href="mailto:wawoo1910s@gmail.com" style="color:var(--accent); font-weight:600;">wawoo1910s@gmail.com</a>으로 보내주세요.
+  </div>
+
+  <!-- ============================================
+    자세쌤 추천 아이템 — 쿠팡파트너스 실제 링크
+  ============================================= -->
+  <div class="rec-card">
+    <div class="rec-head">자세쌤 추천 아이템</div>
+    <div class="rec-sub">알림만으로 부족할 때, 자세를 유지하기 쉽게 도와주는 것들입니다.</div>
+
+    <a class="rec-item" href="https://link.coupang.com/a/fY31nub2t2" target="_blank" rel="noopener nofollow">
+      <div class="rec-name"><span class="rec-tag">의자</span>교정자세용 의자</div>
+      <div class="rec-why">근무처와 휴식처에 두고 교정자세 하기에 적합한 의자입니다.</div>
+    </a>
+
+    <a class="rec-item" href="https://link.coupang.com/a/fZcphgkQsm" target="_blank" rel="noopener nofollow">
+      <div class="rec-name"><span class="rec-tag">매트리스</span>토퍼형 매트리스</div>
+      <div class="rec-why">잠자리 위에 더 올리면 어깨, 골반에 좋은 매트리스입니다.</div>
+    </a>
+
+    <a class="rec-item" href="https://link.coupang.com/a/fY4i8kSrC0" target="_blank" rel="noopener nofollow">
+      <div class="rec-name"><span class="rec-tag">베개</span>목·어깨 베개</div>
+      <div class="rec-why">아침 목, 어깨 뻐근함에 효과 좋은 베개입니다.</div>
+    </a>
+
+    <div class="ad-disclosure" style="margin:16px 0 0;">이 링크는 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.</div>
+  </div>
+
+  <div class="app-footer">
+    <p>© 2026 자세쌤. All rights reserved.<br>
+    제작: 순환자세연구소<br>
+    무단 복제 및 배포를 금지합니다.</p>
   </div>
 </div>
 
@@ -1308,22 +1356,50 @@ function notify(title, body){
   }
 }
 
-function triggerAlert(){
-  const bucket = (TIP_LIBRARY[selectedPart] && TIP_LIBRARY[selectedPart][mode]) || TIP_LIBRARY['전신'][mode];
-  currentTip = bucket[Math.floor(Math.random() * bucket.length)];
-  el.overlayTitle.textContent = currentTip.title;
-  el.overlayText.textContent = currentTip.text;
+function showAlertOverlay(tip, opts){
+  opts = opts || {};
+  currentTip = tip;
+  el.overlayTitle.textContent = tip.title + (opts.isTest ? ' (테스트)' : '');
+  el.overlayText.textContent = tip.text;
   el.overlay.classList.add('show');
   if (captionCurrentEl) captionCurrentEl.textContent = '준비 중…';
-  renderCaptionDots(splitPhrases(currentTip.text).length, -1);
+  renderCaptionDots(splitPhrases(tip.text).length, -1);
   playChime();
   // 알림음이 끝난 뒤 자막과 함께 음성 안내 시작
-  setTimeout(() => speakWithCaptions(currentTip.text), 750);
-  notify('자세교정 알림 — ' + currentTip.title, currentTip.text);
-  todayCount += 1;
-  recordUsage();
-  el.statusWord.textContent = '안내 중';
+  setTimeout(() => speakWithCaptions(tip.text), 750);
+  if (!opts.isTest){
+    notify('자세교정 알림 — ' + tip.title, tip.text);
+    todayCount += 1;
+    recordUsage();
+  }
+  el.statusWord.textContent = opts.isTest ? '테스트 재생 중' : '안내 중';
   el.statusWord.className = 'status-word drift';
+}
+
+function triggerAlert(){
+  const bucket = (TIP_LIBRARY[selectedPart] && TIP_LIBRARY[selectedPart][mode]) || TIP_LIBRARY['전신'][mode];
+  const tip = bucket[Math.floor(Math.random() * bucket.length)];
+  showAlertOverlay(tip, { isTest: false });
+}
+
+function testAlert(){
+  // 사용자가 지금 선택한 부위/자세 기준으로, 통계에는 반영하지 않고 미리 확인
+  const bucket = (TIP_LIBRARY[selectedPart] && TIP_LIBRARY[selectedPart][mode]) || TIP_LIBRARY['전신'][mode];
+  const tip = bucket[Math.floor(Math.random() * bucket.length)];
+  // 오디오 컨텍스트를 사용자 클릭 시점에 활성화 (모바일 자동재생 정책 대응)
+  try {
+    if (!audioCtx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) audioCtx = new AC();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  } catch(e) {}
+  showAlertOverlay(tip, { isTest: true });
+}
+
+const fullTestBtnEl = document.getElementById('fullTestBtn');
+if (fullTestBtnEl){
+  fullTestBtnEl.addEventListener('click', testAlert);
 }
 
 el.dismissBtn.addEventListener('click', () => {
@@ -1365,6 +1441,7 @@ el.startBtn.addEventListener('click', () => {
   el.modeGrid.querySelectorAll('.mode-btn').forEach(b => b.disabled = true);
   document.querySelectorAll('.part-btn').forEach(b => b.disabled = true);
   if (voiceSelectEl) voiceSelectEl.disabled = true;
+  if (fullTestBtnEl) fullTestBtnEl.disabled = true;
   remainingSec = intervalMin * 60;
   updateCountdown();
   timerId = setInterval(tick, 1000);
@@ -1410,6 +1487,7 @@ el.stopBtn.addEventListener('click', () => {
   el.modeGrid.querySelectorAll('.mode-btn').forEach(b => b.disabled = false);
   document.querySelectorAll('.part-btn').forEach(b => b.disabled = false);
   if (voiceSelectEl) voiceSelectEl.disabled = false;
+  if (fullTestBtnEl) fullTestBtnEl.disabled = false;
   remainingSec = intervalMin * 60;
   el.statusWord.textContent = '정렬 대기';
   el.statusWord.className = 'status-word aligned';
