@@ -15,6 +15,7 @@
 
 <!-- SEO -->
 <meta name="description" content="40분마다 음성으로 자세교정을 안내하는 무료 웹앱. 12년차 물리치료사가 만든 목·허리·어깨·골반 자세교정 알리미.">
+<meta name="author" content="순환자세연구소">
 <meta name="keywords" content="자세교정, 거북목, 라운드숄더, 허리통증, 스트레칭 알림, 물리치료사, 자세 알리미">
 <link rel="canonical" href="https://wawoo1910s-spec.github.io/posture-alignment-reminder/">
 
@@ -355,6 +356,49 @@
     line-height:1.7;
   }
 
+  .notif-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px 14px;
+    margin-bottom:18px;
+  }
+  .notif-dot{
+    width:9px;
+    height:9px;
+    border-radius:50%;
+    flex-shrink:0;
+    background:#9aa8a4;
+  }
+  .notif-dot.on{ background:var(--accent); }
+  .notif-dot.off{ background:var(--alert); }
+  .notif-text{
+    flex:1;
+    min-width:0;
+    font-size:13px;
+    color:var(--ink-soft);
+    line-height:1.4;
+  }
+  .notif-text b{ color:var(--ink); }
+  .notif-btn{
+    flex-shrink:0;
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    font-weight:600;
+    padding:9px 13px;
+    border-radius:9px;
+    border:1px solid var(--accent);
+    background:var(--accent);
+    color:#fff;
+    cursor:pointer;
+    transition:opacity 0.15s;
+  }
+  .notif-btn:hover{ opacity:0.9; }
+  .notif-btn:disabled{ opacity:0.4; cursor:default; }
+
   .streak-note{
     font-family:'Inter',sans-serif;
     font-size:13px;
@@ -596,18 +640,37 @@
     font-weight: 500;
     color: #6E7F79;
   }
+  .jss-brand {
+    margin: 5px 0 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: #2E6B5B;
+    opacity: 0.75;
+  }
   @media (min-width: 600px) {
     .jss-logo { width: 60px; height: 60px; }
     .jss-title { font-size: 36px; }
     .jss-subtitle { font-size: 15px; }
+    .jss-brand { font-size: 12px; }
   }
 </style>
 
 <div class="app">
-  <!-- 자세쌤 헤더 (인라인 SVG 로고) -->
+  <!-- 자세쌤 헤더 (인라인 SVG 로고 — 타이머 링 디자인) -->
   <header class="jss-header">
     <svg class="jss-logo" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <rect width="1024" height="1024" rx="224" fill="#2E6B5B"/>
+      <!-- 타이머 링 (연한 배경 원) -->
+      <circle cx="512" cy="512" r="430" fill="none" stroke="#F7F6F2" stroke-opacity="0.4" stroke-width="30"/>
+      <!-- 타이머 진행 아크 (12시 방향에서 시계방향 100도) — 포인트 컬러 -->
+      <circle cx="512" cy="512" r="430" fill="none" stroke="#F5A623" stroke-width="36"
+              stroke-linecap="round" stroke-dasharray="750.5 1951.3"
+              transform="rotate(-90 512 512)"/>
+      <!-- 스톱워치 크라운 -->
+      <rect x="480" y="27" width="64" height="50" rx="18" fill="#F5A623"/>
+      <!-- 척추 아이콘 -->
       <g fill="#F7F6F2">
         <circle cx="512" cy="234" r="74"/>
         <rect x="422" y="352" width="180" height="84" rx="42"/>
@@ -619,6 +682,7 @@
     <div class="jss-title-wrap">
       <h1 class="jss-title">자세쌤</h1>
       <p class="jss-subtitle">12년차 물리치료사의 자세교정 알리미</p>
+      <p class="jss-brand">제작 · 순환자세연구소</p>
     </div>
   </header>
 
@@ -670,6 +734,12 @@
     <div class="mode-grid" id="soundGrid">
       <button class="mode-btn active" data-sound="on">알림음 켜기</button>
       <button class="mode-btn" data-sound="off">알림음 끄기</button>
+    </div>
+    <div class="card-title">팝업 알림</div>
+    <div class="notif-row">
+      <span class="notif-dot" id="notifDot"></span>
+      <span class="notif-text" id="notifText">이 브라우저의 알림 권한을 확인하는 중…</span>
+      <button class="notif-btn" id="notifBtn" style="display:none;">알림 켜기</button>
     </div>
     <button class="share-btn" id="fullTestBtn" style="width:100%; margin-bottom:18px;">🔊 음성·자막 테스트</button>
     <div class="actions">
@@ -1351,10 +1421,75 @@ function speakWithCaptions(text){
 }
 
 function notify(title, body){
-  if ('Notification' in window && Notification.permission === 'granted'){
-    try { new Notification(title, { body }); } catch(e) {}
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try {
+    const n = new Notification(title, {
+      body: body,
+      icon: 'icon-192.png',
+      badge: 'favicon-32.png',
+      tag: 'jaseSsam-alert',   // 같은 태그면 이전 알림을 새 알림으로 교체 (중복 누적 방지)
+      renotify: true,
+      requireInteraction: true // 사용자가 직접 닫을 때까지 화면(특히 윈도우)에 유지
+    });
+    n.onclick = () => {
+      try { window.focus(); } catch(e) {}
+      n.close();
+    };
+  } catch(e) { /* 알림 생성 실패는 무시 (음성 안내는 별도로 진행됨) */ }
+}
+
+/* ---------- 팝업 알림 권한 상태 표시 ---------- */
+const notifDotEl = document.getElementById('notifDot');
+const notifTextEl = document.getElementById('notifText');
+const notifBtnEl = document.getElementById('notifBtn');
+
+function renderNotifStatus(){
+  if (!notifDotEl || !notifTextEl || !notifBtnEl) return;
+
+  if (!('Notification' in window)){
+    notifDotEl.className = 'notif-dot off';
+    notifTextEl.innerHTML = '이 브라우저는 팝업 알림을 지원하지 않습니다.';
+    notifBtnEl.style.display = 'none';
+    return;
+  }
+
+  const perm = Notification.permission;
+  if (perm === 'granted'){
+    notifDotEl.className = 'notif-dot on';
+    notifTextEl.innerHTML = '<b>팝업 알림 켜짐</b> — 탭이 백그라운드에 있어도 알려드려요.';
+    notifBtnEl.style.display = 'none';
+  } else if (perm === 'denied'){
+    notifDotEl.className = 'notif-dot off';
+    notifTextEl.innerHTML = '팝업 알림이 <b>차단</b>돼 있어요. 브라우저 주소창의 자물쇠 아이콘에서 알림을 허용해주세요.';
+    notifBtnEl.style.display = 'none';
+  } else {
+    notifDotEl.className = 'notif-dot';
+    notifTextEl.innerHTML = '팝업 알림을 켜면 다른 화면을 보고 있어도 알려드려요.';
+    notifBtnEl.style.display = 'inline-block';
   }
 }
+
+if (notifBtnEl){
+  notifBtnEl.addEventListener('click', () => {
+    if (!('Notification' in window)) return;
+    notifBtnEl.disabled = true;
+    Notification.requestPermission().then(() => {
+      renderNotifStatus();
+      if (Notification.permission === 'granted'){
+        try {
+          const n = new Notification('자세쌤 알림이 켜졌어요', {
+            body: '이제 다른 화면을 보고 있어도 자세교정 시간을 알려드릴게요.',
+            icon: 'icon-192.png'
+          });
+          setTimeout(() => n.close(), 4000);
+        } catch(e) {}
+      }
+      notifBtnEl.disabled = false;
+    });
+  });
+}
+
+renderNotifStatus();
 
 function showAlertOverlay(tip, opts){
   opts = opts || {};
@@ -1426,7 +1561,7 @@ function tick(){
 el.startBtn.addEventListener('click', () => {
   if (running) return;
   if ('Notification' in window && Notification.permission === 'default'){
-    Notification.requestPermission();
+    Notification.requestPermission().then(() => renderNotifStatus());
   }
   if ('speechSynthesis' in window){
     window.speechSynthesis.getVoices();
