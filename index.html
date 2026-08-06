@@ -253,6 +253,24 @@
   }
   .voice-note b{ color:var(--ink); }
 
+  .ad-slot{
+    width:320px;
+    max-width:100%;
+    margin:0 auto 20px;
+    border-radius:14px;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .ad-slot-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    text-align:center;
+    line-height:1.6;
+  }
+
   /* Alert overlay */
   .overlay{
     position:fixed;
@@ -343,6 +361,11 @@
       <span>오늘 알림 횟수</span>
       <span id="countToday">0회</span>
     </div>
+  </div>
+
+  <!-- 쿠팡파트너스 배너 (320x250) -->
+  <div class="ad-slot" id="adSlot300x250">
+    <iframe src="https://ads-partners.coupang.com/widgets.html?id=1014619&template=carousel&trackingCode=AF5742623&subId=&width=320&height=250&tsource=" width="320" height="250" frameborder="0" scrolling="no" referrerpolicy="unsafe-url" browsingtopics></iframe>
   </div>
 
   <div class="voice-note">
