@@ -979,6 +979,8 @@ let soundEnabled = true;
 let speechRate = 0.95;
 let wakeLock = null;
 let currentUtterance = null; // GC로 인한 무음 방지용 참조 유지
+let currentCaptionTimers = []; // 자막 스케줄 타이머 (취소용)
+let pendingSpeechTimer = null; // 알림음→음성 사이 지연 타이머 (취소용)
 
 /* ---------- 설정 저장 / 불러오기 ---------- */
 const STORAGE_KEY = 'jaseSsam.settings.v1';
@@ -1426,75 +1428,55 @@ function setCaption(text){
 function stopCaptionedSpeech(){
   captionCancelled = true;
   currentUtterance = null;
+  clearTimeout(pendingSpeechTimer);
+  currentCaptionTimers.forEach(id => clearTimeout(id));
+  currentCaptionTimers = [];
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 }
 
-// 문장을 하나로 통째로 재생하면서, 단어 경계(boundary) 이벤트에 맞춰 자막만 따라가게 함.
-// (여러 개의 utterance를 순서대로 speak()하면 iOS Safari에서 첫 문장만 말하고
-//  멈추는 알려진 버그가 있어, 반드시 utterance는 하나만 만든다.)
+// 문장을 하나로 통째로 재생하면서, 자막은 예상 소요 시간에 맞춰 순서대로 진행시킴.
+// (여러 utterance를 순서대로 speak()하면 iOS Safari에서 첫 문장만 말하고 멈추는
+//  버그가 있어 utterance는 반드시 하나만 만든다. 또한 브라우저별 word-boundary
+//  이벤트는 순서가 뒤섞이거나(Android 등) 아예 지원되지 않는 경우가 많아,
+//  자막 진행은 boundary 이벤트에 기대지 않고 글자 수 기반 예상 시간으로 스케줄링한다 —
+//  이러면 어떤 브라우저에서도 자막 순서가 항상 보장된다.)
 function speakWithCaptions(text){
   const allPhrases = splitPhrases(text);
   if (!allPhrases.length) return;
 
-  const SILENT_PHRASES = new Set(['하나 둘']);
+  const SILENT_PHRASES = new Set(['\ud558\ub098 \ub458']);
 
   captionCancelled = false;
-  renderCaptionDots(allPhrases.length, 0);
-  setCaption(allPhrases[0]);
+  currentCaptionTimers.forEach(id => clearTimeout(id));
+  currentCaptionTimers = [];
 
-  if (!('speechSynthesis' in window)){
-    // 음성 미지원 환경: 자막만 일정 간격으로 넘김
-    let i = 0;
-    const advance = () => {
-      if (captionCancelled) return;
-      i++;
-      if (i >= allPhrases.length) return;
-      renderCaptionDots(allPhrases.length, i);
-      setCaption(allPhrases[i]);
-      setTimeout(advance, 1400);
-    };
-    setTimeout(advance, 1400);
-    return;
-  }
+  // 구절별 표시 시간을 글자 수로 추정해 순서대로 스케줄링
+  const msPerChar = 165 / Math.max(speechRate, 0.4);
+  const gapMs = 230 / Math.max(speechRate, 0.4);
+  const silentMs = 900 / Math.max(speechRate, 0.5);
 
-  // 무음 구절을 제외한 "실제로 말할 구절"만 모으고, 각 구절이 전체 자막 목록에서
-  // 몇 번째였는지, 그리고 그 직전에 표시해줘야 할 무음 구절이 있는지 기록해둔다.
-  const spokenPhrases = [];
-  const spokenToAllIndex = [];
-  const pendingSilentBefore = [];
-  let silentBuffer = [];
+  let t = 0;
   allPhrases.forEach((p, idx) => {
-    if (SILENT_PHRASES.has(p)){
-      silentBuffer.push(idx);
-    } else {
-      spokenPhrases.push(p);
-      spokenToAllIndex.push(idx);
-      pendingSilentBefore.push(silentBuffer);
-      silentBuffer = [];
-    }
-  });
-  const trailingSilent = silentBuffer; // 마지막 발화 구절 뒤에 남은 무음 구절(있다면)
-
-  if (!spokenPhrases.length){
-    // 전부 무음 구절인 극단적인 경우: 자막만 순서대로 넘김
-    let i = 0;
-    const advance = () => {
+    const id = setTimeout(() => {
       if (captionCancelled) return;
-      i++;
-      if (i >= allPhrases.length) return;
-      renderCaptionDots(allPhrases.length, i);
-      setCaption(allPhrases[i]);
-      setTimeout(advance, 1100 / Math.max(speechRate, 0.5));
-    };
-    setTimeout(advance, 1100 / Math.max(speechRate, 0.5));
-    return;
-  }
+      renderCaptionDots(allPhrases.length, idx);
+      setCaption(p);
+    }, t);
+    currentCaptionTimers.push(id);
+    t += SILENT_PHRASES.has(p) ? silentMs : (p.length * msPerChar + gapMs);
+  });
+  const doneId = setTimeout(() => {
+    if (captionCancelled) return;
+    renderCaptionDots(allPhrases.length, allPhrases.length);
+  }, t);
+  currentCaptionTimers.push(doneId);
 
-  // 실제로 speechSynthesis에 넘길 하나의 문장. 구절 사이는 쉼표로 이어 자연스러운 끊어읽기를 유지.
+  if (!('speechSynthesis' in window)) return; // 음성 미지원 환경: 자막 스케줄만 진행
+
+  const spokenPhrases = allPhrases.filter(p => !SILENT_PHRASES.has(p));
+  if (!spokenPhrases.length) return; // 전부 무음 구절인 극단적인 경우
+
   const spokenText = spokenPhrases.join(', ') + '.';
-  const offsets = [];
-  { let pos = 0;
-    spokenPhrases.forEach(p => { offsets.push(pos); pos += p.length + 2; }); }
 
   window.speechSynthesis.cancel();
   const voice = pickVoice();
@@ -1505,63 +1487,7 @@ function speakWithCaptions(text){
   if (voice) utter.voice = voice;
   currentUtterance = utter; // GC 방지용 참조 유지
 
-  let shownSpokenIdx = -1;
-  let holding = false;
-
-  function showSpoken(i){
-    shownSpokenIdx = i;
-    renderCaptionDots(allPhrases.length, spokenToAllIndex[i]);
-    setCaption(spokenPhrases[i]);
-  }
-
-  function showSilentThenSpoken(silentAllIdx, nextSpokenIdx){
-    holding = true;
-    renderCaptionDots(allPhrases.length, silentAllIdx);
-    setCaption(allPhrases[silentAllIdx]);
-    const pauseMs = 900 / Math.max(speechRate, 0.5);
-    setTimeout(() => {
-      if (captionCancelled) return;
-      holding = false;
-      showSpoken(nextSpokenIdx);
-    }, pauseMs);
-  }
-
-  utter.onboundary = (e) => {
-    if (captionCancelled || holding) return;
-    if (typeof e.charIndex !== 'number') return;
-    let idx = 0;
-    for (let i = 0; i < offsets.length; i++){
-      if (offsets[i] <= e.charIndex) idx = i; else break;
-    }
-    if (idx <= shownSpokenIdx) return;
-    const pend = pendingSilentBefore[idx];
-    if (pend && pend.length){
-      showSilentThenSpoken(pend[0], idx);
-    } else {
-      showSpoken(idx);
-    }
-  };
-
-  let ended = false;
-  const finish = () => {
-    if (ended) return;
-    ended = true;
-    if (captionCancelled) return;
-    if (trailingSilent.length){
-      renderCaptionDots(allPhrases.length, trailingSilent[0]);
-      setCaption(allPhrases[trailingSilent[0]]);
-    } else {
-      renderCaptionDots(allPhrases.length, allPhrases.length);
-    }
-  };
-  utter.onend = finish;
-  utter.onerror = finish;
-
   window.speechSynthesis.speak(utter);
-
-  // boundary 이벤트를 지원하지 않거나 onend가 누락되는 브라우저 대비 안전장치
-  const fallbackMs = (1500 + spokenText.length * 190) / Math.max(speechRate, 0.5);
-  setTimeout(finish, fallbackMs);
 }
 
 function notify(title, body){
@@ -1644,8 +1570,9 @@ function showAlertOverlay(tip, opts){
   if (captionCurrentEl) captionCurrentEl.textContent = '준비 중…';
   renderCaptionDots(splitPhrases(tip.text).length, -1);
   playChime();
-  // 알림음이 끝난 뒤 자막과 함께 음성 안내 시작
-  setTimeout(() => speakWithCaptions(tip.text), 750);
+  // 알림음이 끝난 뒤 자막과 함께 음성 안내 시작 (취소 가능하도록 id 보관)
+  clearTimeout(pendingSpeechTimer);
+  pendingSpeechTimer = setTimeout(() => speakWithCaptions(tip.text), 750);
   if (!opts.isTest){
     notify('자세교정 알림 — ' + tip.title, tip.text);
     todayCount += 1;
