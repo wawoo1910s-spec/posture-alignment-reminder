@@ -422,6 +422,60 @@
   }
   .voice-note b{ color:var(--ink); }
 
+  .info-accordion{
+    background:var(--accent-soft);
+    border-radius:14px;
+    overflow:hidden;
+    margin-bottom:20px;
+  }
+  .info-toggle{
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:14px 16px;
+    background:none;
+    border:none;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    font-weight:600;
+    color:var(--ink);
+    text-align:left;
+  }
+  .info-toggle-icon{
+    flex-shrink:0;
+    width:18px;
+    height:18px;
+    color:var(--accent);
+    transition:transform 0.2s;
+  }
+  .info-accordion.open .info-toggle-icon{ transform:rotate(180deg); }
+  .info-panel{
+    max-height:0;
+    overflow:hidden;
+    transition:max-height 0.25s ease;
+  }
+  .info-accordion.open .info-panel{ max-height:900px; }
+  .info-panel-inner{
+    padding:0 16px 16px;
+  }
+  .info-item{
+    font-size:13px;
+    color:var(--ink-soft);
+    line-height:1.6;
+    padding-top:12px;
+    border-top:1px solid rgba(0,0,0,0.06);
+    margin-top:12px;
+  }
+  .info-item:first-child{
+    padding-top:0;
+    border-top:none;
+    margin-top:0;
+  }
+  .info-item b{ color:var(--ink); }
+
   .ad-slot{
     width:320px;
     max-width:100%;
@@ -773,20 +827,30 @@
   </div>
   <div class="ad-disclosure">이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.</div>
 
-  <div class="voice-note">
-    <b>안내</b> — 이 탭을 열어둔 상태에서만 타이머가 동작합니다. 처음 시작할 때 브라우저가 알림·음성 권한을 물으면 허용해 주세요.
-  </div>
-
-  <div class="voice-note" style="margin-top:12px;">
-    <b>사용법</b> — 시간이 되면 음성 안내에 따라 자세교정 동작을 실행하고, 바로 하던 일을 다시 이어가시면 됩니다.
-  </div>
-
-  <div class="voice-note" style="margin-top:12px;">
-    <b>추천 사용 시간</b> — 일할 때, 그리고 휴식할 때(특히 저녁 시간)에 사용하시면 좋습니다.
-  </div>
-
-  <div class="voice-note" style="margin-top:12px;">
-    <b>문의</b> — 12년차 물리치료사가 임상 경험을 바탕으로 만들었습니다. 불편사항이나 문의사항은 아래 <b>댓글</b>로 남겨주시거나, <a href="mailto:wawoo1910s@gmail.com" style="color:var(--accent); font-weight:600;">wawoo1910s@gmail.com</a>으로 보내주세요.
+  <!-- 이용 안내 아코디언 (기본 접힘) -->
+  <div class="info-accordion" id="infoAccordion">
+    <button class="info-toggle" id="infoToggle" type="button" aria-expanded="false">
+      <span>이용 안내 · 문의</span>
+      <svg class="info-toggle-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <div class="info-panel" id="infoPanel">
+      <div class="info-panel-inner">
+        <div class="info-item">
+          <b>안내</b> — 이 탭을 열어둔 상태에서만 타이머가 동작합니다. 처음 시작할 때 브라우저가 알림·음성 권한을 물으면 허용해 주세요.
+        </div>
+        <div class="info-item">
+          <b>사용법</b> — 시간이 되면 음성 안내에 따라 자세교정 동작을 실행하고, 바로 하던 일을 다시 이어가시면 됩니다.
+        </div>
+        <div class="info-item">
+          <b>추천 사용 시간</b> — 일할 때, 그리고 휴식할 때(특히 저녁 시간)에 사용하시면 좋습니다.
+        </div>
+        <div class="info-item">
+          <b>문의</b> — 12년차 물리치료사가 임상 경험을 바탕으로 만들었습니다. 불편사항이나 문의사항은 아래 <b>댓글</b>로 남겨주시거나, <a href="mailto:wawoo1910s@gmail.com" style="color:var(--accent); font-weight:600;">wawoo1910s@gmail.com</a>으로 보내주세요.
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ============================================
@@ -1710,6 +1774,17 @@ el.stopBtn.addEventListener('click', () => {
 
 /* ---------- 누적 사용 기록 표시 ---------- */
 renderStats();
+
+/* ---------- 이용 안내 아코디언 ---------- */
+const infoAccordionEl = document.getElementById('infoAccordion');
+const infoToggleEl = document.getElementById('infoToggle');
+if (infoAccordionEl && infoToggleEl){
+  infoToggleEl.addEventListener('click', () => {
+    const willOpen = !infoAccordionEl.classList.contains('open');
+    infoAccordionEl.classList.toggle('open', willOpen);
+    infoToggleEl.setAttribute('aria-expanded', String(willOpen));
+  });
+}
 </script>
 
 </body>
