@@ -1336,6 +1336,36 @@ function playChime(){
   } catch(e) { /* 오디오 미지원 환경은 무시 */ }
 }
 
+// "하나 둘" 무음 구간에 쓰는, 천천히 두 번 울리는 비프음 (숫자를 세는 듯한 느낌)
+function playSlowDoubleBeep(){
+  if (!soundEnabled) return;
+  try {
+    if (!audioCtx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      audioCtx = new AC();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    const now = audioCtx.currentTime;
+    // 같은 음 높이로 천천히 두 번 (하나 / 둘)
+    [0, 0.65].forEach(delay => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 660;
+      gain.gain.setValueAtTime(0, now + delay);
+      gain.gain.linearRampToValueAtTime(0.28, now + delay + 0.03);
+      gain.gain.setValueAtTime(0.28, now + delay + 0.22);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.4);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now + delay);
+      osc.stop(now + delay + 0.45);
+    });
+  } catch(e) { /* 오디오 미지원 환경은 무시 */ }
+}
+
 /* ---------- 화면 꺼짐 방지 (Wake Lock) ---------- */
 async function requestWakeLock(){
   try {
@@ -1453,17 +1483,20 @@ function speakWithCaptions(text){
   // 구절별 표시 시간을 글자 수로 추정해 순서대로 스케줄링
   const msPerChar = 165 / Math.max(speechRate, 0.4);
   const gapMs = 230 / Math.max(speechRate, 0.4);
-  const silentMs = 900 / Math.max(speechRate, 0.5);
+  // "하나 둘" 구간은 비프음 두 번(약 1.1초)이 끝날 시간을 확보해야 하므로 속도와 무관하게 고정
+  const BEEP_SLOT_MS = 1300;
 
   let t = 0;
   allPhrases.forEach((p, idx) => {
+    const isSilent = SILENT_PHRASES.has(p);
     const id = setTimeout(() => {
       if (captionCancelled) return;
       renderCaptionDots(allPhrases.length, idx);
       setCaption(p);
+      if (isSilent) playSlowDoubleBeep();
     }, t);
     currentCaptionTimers.push(id);
-    t += SILENT_PHRASES.has(p) ? silentMs : (p.length * msPerChar + gapMs);
+    t += isSilent ? BEEP_SLOT_MS : (p.length * msPerChar + gapMs);
   });
   const doneId = setTimeout(() => {
     if (captionCancelled) return;
