@@ -978,6 +978,7 @@ let selectedVoiceURI = '';
 let soundEnabled = true;
 let speechRate = 0.95;
 let wakeLock = null;
+let currentUtterance = null; // GC로 인한 무음 방지용 참조 유지
 
 /* ---------- 설정 저장 / 불러오기 ---------- */
 const STORAGE_KEY = 'jaseSsam.settings.v1';
@@ -1424,17 +1425,22 @@ function setCaption(text){
 
 function stopCaptionedSpeech(){
   captionCancelled = true;
+  currentUtterance = null;
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 }
 
-// 구절을 하나씩 읽으면서 자막을 동기화
+// 문장을 하나로 통째로 재생하면서, 단어 경계(boundary) 이벤트에 맞춰 자막만 따라가게 함.
+// (여러 개의 utterance를 순서대로 speak()하면 iOS Safari에서 첫 문장만 말하고
+//  멈추는 알려진 버그가 있어, 반드시 utterance는 하나만 만든다.)
 function speakWithCaptions(text){
-  const phrases = splitPhrases(text);
-  if (!phrases.length) return;
+  const allPhrases = splitPhrases(text);
+  if (!allPhrases.length) return;
+
+  const SILENT_PHRASES = new Set(['하나 둘']);
 
   captionCancelled = false;
-  renderCaptionDots(phrases.length, 0);
-  setCaption(phrases[0]);
+  renderCaptionDots(allPhrases.length, 0);
+  setCaption(allPhrases[0]);
 
   if (!('speechSynthesis' in window)){
     // 음성 미지원 환경: 자막만 일정 간격으로 넘김
@@ -1442,58 +1448,120 @@ function speakWithCaptions(text){
     const advance = () => {
       if (captionCancelled) return;
       i++;
-      if (i >= phrases.length) return;
-      renderCaptionDots(phrases.length, i);
-      setCaption(phrases[i]);
+      if (i >= allPhrases.length) return;
+      renderCaptionDots(allPhrases.length, i);
+      setCaption(allPhrases[i]);
       setTimeout(advance, 1400);
     };
     setTimeout(advance, 1400);
     return;
   }
 
+  // 무음 구절을 제외한 "실제로 말할 구절"만 모으고, 각 구절이 전체 자막 목록에서
+  // 몇 번째였는지, 그리고 그 직전에 표시해줘야 할 무음 구절이 있는지 기록해둔다.
+  const spokenPhrases = [];
+  const spokenToAllIndex = [];
+  const pendingSilentBefore = [];
+  let silentBuffer = [];
+  allPhrases.forEach((p, idx) => {
+    if (SILENT_PHRASES.has(p)){
+      silentBuffer.push(idx);
+    } else {
+      spokenPhrases.push(p);
+      spokenToAllIndex.push(idx);
+      pendingSilentBefore.push(silentBuffer);
+      silentBuffer = [];
+    }
+  });
+  const trailingSilent = silentBuffer; // 마지막 발화 구절 뒤에 남은 무음 구절(있다면)
+
+  if (!spokenPhrases.length){
+    // 전부 무음 구절인 극단적인 경우: 자막만 순서대로 넘김
+    let i = 0;
+    const advance = () => {
+      if (captionCancelled) return;
+      i++;
+      if (i >= allPhrases.length) return;
+      renderCaptionDots(allPhrases.length, i);
+      setCaption(allPhrases[i]);
+      setTimeout(advance, 1100 / Math.max(speechRate, 0.5));
+    };
+    setTimeout(advance, 1100 / Math.max(speechRate, 0.5));
+    return;
+  }
+
+  // 실제로 speechSynthesis에 넘길 하나의 문장. 구절 사이는 쉼표로 이어 자연스러운 끊어읽기를 유지.
+  const spokenText = spokenPhrases.join(', ') + '.';
+  const offsets = [];
+  { let pos = 0;
+    spokenPhrases.forEach(p => { offsets.push(pos); pos += p.length + 2; }); }
+
   window.speechSynthesis.cancel();
   const voice = pickVoice();
 
-  // 음성 없이 자막만 잠깐 보여주고 넘어가는 무음 구절
-  const SILENT_PHRASES = ['하나 둘'];
+  const utter = new SpeechSynthesisUtterance(spokenText);
+  utter.lang = 'ko-KR';
+  utter.rate = speechRate;
+  if (voice) utter.voice = voice;
+  currentUtterance = utter; // GC 방지용 참조 유지
 
-  const speakAt = (idx) => {
-    if (captionCancelled || idx >= phrases.length) return;
-    renderCaptionDots(phrases.length, idx);
-    setCaption(phrases[idx]);
+  let shownSpokenIdx = -1;
+  let holding = false;
 
-    if (SILENT_PHRASES.includes(phrases[idx])){
-      // TTS 없이 잠깐 쉬었다가 다음 구절로
-      const pauseMs = 1100 / Math.max(speechRate, 0.5);
-      setTimeout(() => {
-        if (!captionCancelled) speakAt(idx + 1);
-      }, pauseMs);
-      return;
-    }
+  function showSpoken(i){
+    shownSpokenIdx = i;
+    renderCaptionDots(allPhrases.length, spokenToAllIndex[i]);
+    setCaption(spokenPhrases[i]);
+  }
 
-    const u = new SpeechSynthesisUtterance(phrases[idx]);
-    u.lang = 'ko-KR';
-    u.rate = speechRate;
-    if (voice) u.voice = voice;
-
-    let advanced = false;
-    const next = () => {
-      if (advanced) return;
-      advanced = true;
+  function showSilentThenSpoken(silentAllIdx, nextSpokenIdx){
+    holding = true;
+    renderCaptionDots(allPhrases.length, silentAllIdx);
+    setCaption(allPhrases[silentAllIdx]);
+    const pauseMs = 900 / Math.max(speechRate, 0.5);
+    setTimeout(() => {
       if (captionCancelled) return;
-      // 구절 사이 짧은 호흡
-      setTimeout(() => speakAt(idx + 1), 260);
-    };
-    u.onend = next;
-    u.onerror = next;
-    window.speechSynthesis.speak(u);
+      holding = false;
+      showSpoken(nextSpokenIdx);
+    }, pauseMs);
+  }
 
-    // 일부 브라우저에서 onend가 누락되는 경우 대비한 안전장치 (속도에 비례)
-    const fallbackMs = (900 + phrases[idx].length * 190) / Math.max(speechRate, 0.5);
-    setTimeout(next, fallbackMs);
+  utter.onboundary = (e) => {
+    if (captionCancelled || holding) return;
+    if (typeof e.charIndex !== 'number') return;
+    let idx = 0;
+    for (let i = 0; i < offsets.length; i++){
+      if (offsets[i] <= e.charIndex) idx = i; else break;
+    }
+    if (idx <= shownSpokenIdx) return;
+    const pend = pendingSilentBefore[idx];
+    if (pend && pend.length){
+      showSilentThenSpoken(pend[0], idx);
+    } else {
+      showSpoken(idx);
+    }
   };
 
-  speakAt(0);
+  let ended = false;
+  const finish = () => {
+    if (ended) return;
+    ended = true;
+    if (captionCancelled) return;
+    if (trailingSilent.length){
+      renderCaptionDots(allPhrases.length, trailingSilent[0]);
+      setCaption(allPhrases[trailingSilent[0]]);
+    } else {
+      renderCaptionDots(allPhrases.length, allPhrases.length);
+    }
+  };
+  utter.onend = finish;
+  utter.onerror = finish;
+
+  window.speechSynthesis.speak(utter);
+
+  // boundary 이벤트를 지원하지 않거나 onend가 누락되는 브라우저 대비 안전장치
+  const fallbackMs = (1500 + spokenText.length * 190) / Math.max(speechRate, 0.5);
+  setTimeout(finish, fallbackMs);
 }
 
 function notify(title, body){
